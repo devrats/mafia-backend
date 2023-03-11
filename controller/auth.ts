@@ -1,4 +1,10 @@
-import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import {
+  getAuth,
+  signInWithPopup,
+  GoogleAuthProvider,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
 export const provider = new GoogleAuthProvider();
 import { Request, Response } from "express";
 
@@ -26,18 +32,60 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth();
 
 export const logInWithGoogle = async (req: Request, res: Response) => {
-  console.log("haabhavgubhuyvgtfvyubijk");
-  // console.log(req);
-  try{
-    // const {name, email, uid, photo} = req.body
-    console.log(req);
+  try {
     res.send(req.body);
-}catch(error:any){
-    console.log(error)
-    if(error.code==11000){
-        res.status(409).send(error)
-    } else{
-        res.status(400).send(error)
+  } catch (error: any) {
+    if (error.code == 11000) {
+      res.status(409).send(error);
+    } else {
+      res.status(400).send(error);
     }
-}
+  }
+};
+
+export const signUpWithGoogle = async (req: Request, res: Response) => {
+  try {
+    const { name, email, password } = req.body;
+    createUserWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        // Signed in
+        const user = userCredential.user;
+        res.send(user);
+        // ...
+      })
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        res.status(400).send(errorMessage);
+      });
+  } catch (error: any) {
+    if (error.code == 11000) {
+      res.status(409).send(error);
+    } else {
+      res.status(400).send(error);
+    }
+  }
+};
+
+export const signInWithGoogle = async (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body;
+    signInWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        const user = userCredential.user;
+        res.status(200).send(user);
+        // ...
+      })
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        res.status(400).send(errorMessage);
+      });
+  } catch (error: any) {
+    if (error.code == 11000) {
+      res.status(409).send(error);
+    } else {
+      res.status(400).send(error);
+    }
+  }
 };
