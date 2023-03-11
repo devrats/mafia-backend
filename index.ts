@@ -1,15 +1,22 @@
-import express, { Express, Request, Response } from 'express';
-import dotenv from 'dotenv';
+import express from "express";
+import { authRoutes } from "./rotes/routes";
+import cors from 'cors'
+import cookieParser from'cookie-parser';
+import dotenv from 'dotenv'
 
+const app = express();
 dotenv.config();
+app.use(cors({
+    origin:'*',
+    credentials:true,
+    methods: ['GET','POST','DELETE','UPDATE','PUT','PATCH']
+}))
+app.use(cookieParser())
+app.use(express.json())
+app.use(authRoutes)
 
-const app: Express = express();
-const port = process.env.PORT;
 
-app.get('/', (req: Request, res: Response) => {
-  res.send('Express + TypeScript Server');
-});
-
-app.listen(port, () => {
-  console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
-});
+const PORT = process.env.PORT || 3000;
+app.listen(PORT,()=>{
+    console.log("connected to server succesfully", [PORT]);
+}); 
