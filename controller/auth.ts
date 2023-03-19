@@ -11,6 +11,7 @@ import { Request, Response } from "express";
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
+import { createToken } from "../security/jwt-handling";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -33,7 +34,9 @@ export const auth = getAuth();
 
 export const logInWithGoogle = async (req: Request, res: Response) => {
   try {
-    res.send(req.body);
+    let uId = req.body.uid
+    const jwt = createToken(uId);
+    res.send({jwt});
   } catch (error: any) {
     if (error.code == 11000) {
       res.status(409).send(error);
@@ -48,9 +51,10 @@ export const signUpWithGoogle = async (req: Request, res: Response) => {
     const { name, email, password } = req.body;
     createUserWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
-        // Signed in
         const user = userCredential.user;
-        res.send(user);
+        let uId = user.uid
+        const jwt = createToken(uId);
+        res.send({jwt});
         // ...
       })
       .catch((error) => {
@@ -73,7 +77,9 @@ export const signInWithGoogle = async (req: Request, res: Response) => {
     signInWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
         const user = userCredential.user;
-        res.status(200).send(user);
+        let uId = user.uid
+        const jwt = createToken(uId);
+        res.send({jwt});
         // ...
       })
       .catch((error) => {
