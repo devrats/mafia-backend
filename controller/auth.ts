@@ -60,7 +60,7 @@ export const signUpWithGoogle = async (req: Request, res: Response) => {
       .catch((error) => {
         const errorCode = error.code;
         const errorMessage = error.message;
-        res.status(400).send(errorMessage);
+        res.status(201).send(errorCode);
       });
   } catch (error: any) {
     if (error.code == 11000) {
@@ -79,13 +79,15 @@ export const signInWithGoogle = async (req: Request, res: Response) => {
         const user = userCredential.user;
         let uId = user.uid
         const jwt = createToken(uId);
+        console.log(user);
         res.send({jwt});
         // ...
       })
       .catch((error) => {
         const errorCode = error.code;
         const errorMessage = error.message;
-        res.status(400).send(errorMessage);
+        console.log(error.code);
+        res.status(201).send(errorCode);
       });
   } catch (error: any) {
     if (error.code == 11000) {
