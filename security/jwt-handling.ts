@@ -12,13 +12,10 @@ export const createToken = (id:any)=>{
 export const verifyToken = (req:Request, res:Response,next:any)=>{
     const token = req.headers['token'] as string
     if (token) {
-        console.log(token)
         jwt.verify(token , 'mafia', (err:any, decodedToken:any) => {
-          if (err) {
-            console.log(err.message);   
+          if (err) { 
             res.status(402).send("invalid token");
           } else {
-            console.log(decodedToken);
             next();
           }
         });
