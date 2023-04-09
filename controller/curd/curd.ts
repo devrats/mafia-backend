@@ -8,17 +8,18 @@ export const createUser = async (data: any) => {
   try {
     console.log("baar baar kyu ho ra h");
     console.log(data);
-    const { uid, email, displayName, photoURL } = data;
+    const { uid, email, displayName } = data;
+    let photo = Math.ceil(Math.random()*10);
+    console.log(photo);
     const docRef = await addDoc(collection(db, "users"), {
-      name: displayName,
-      uId: uid,
+      displayName: displayName,
+      uid: uid,
       email: email,
-      photos: photoURL,
       gamePlayed: 8,
       gameWin: 5,
       gameMafia: 4,
       gameVillager: 4,
-      photo : 10,
+      photo: photo,
       gameHistory: [
         {
           code: "123456",
@@ -68,14 +69,29 @@ export const createUser = async (data: any) => {
   }
 };
 
-export const checkUser = async (uId: string) => {
+export const checkUser = async (uid: string) => {
   const querySnapshot = await getDocs(collection(db, "users"));
   let flag = false;
   querySnapshot.forEach((doc) => {
-    console.log(`${doc.id} => ${JSON.stringify(doc.data().uId)}`);
-    if(doc.data().uId == uId){
-        flag = true;
+    console.log(`${doc.id} => ${JSON.stringify(doc.data())}`);
+    if (doc.data().uid == uid) {
+      flag = true;
     }
   });
   return flag;
+};
+
+export const getUser = async (uid: string) => {
+  let displayName;
+  let photo;
+  const querySnapshot = await getDocs(collection(db, "users"));
+  querySnapshot.forEach((doc) => {
+    if (doc.data().uid == uid) {
+      console.log(`${doc.id} => ${JSON.stringify(doc.data().displayName)}`);
+      displayName = doc.data().displayName;
+      photo = JSON.stringify(doc.data().photo);
+      console.log(displayName);
+    }
+  });
+  return {displayName, photo};
 };

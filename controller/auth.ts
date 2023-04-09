@@ -12,7 +12,7 @@ import { initializeApp } from "firebase/app";
 import { createToken } from "../security/jwt-handling";
 import { getFirestore } from "firebase/firestore";
 import { firebaseConfig } from "../config/firebase-config";
-import { checkUser, createUser } from "./curd/curd";
+import { checkUser, createUser, getUser } from "./curd/curd";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -34,8 +34,8 @@ export const logInWithGoogle = async (req: Request, res: Response) => {
     if(!flag){
       createUser(req.body);
     }
-    console.log(flag)
-    res.send({jwt, uid, email, displayName});
+    const {photo} = await getUser(uid);
+    res.send({jwt, uid, email, displayName, photo});
   } catch (error: any) {
     if (error.code == 11000) {
       res.status(409).send(error);
@@ -47,14 +47,22 @@ export const logInWithGoogle = async (req: Request, res: Response) => {
 
 export const signUpWithGoogle = async (req: Request, res: Response) => {
   try {
-    const { name, email, password } = req.body;
+    const { displayName, email, password } = req.body;
+    console.log(req.body);
+    console.log(displayName);
     createUserWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
+      .then(async (userCredential) => {
         const user = userCredential.user;
-        let uId = user.uid
-        const jwt = createToken(uId);
-        const { uid, email, displayName } = user
-        res.send({jwt, uid, email, displayName});
+        const { uid, email } = user
+        const jwt = createToken(uid);
+        let data = {
+          uid : uid,
+          email : email,
+          displayName: displayName
+        }
+        createUser(data);
+        const {photo} = await getUser(uid);
+        res.send({jwt, uid, email, displayName, photo});
         // ...
       })
       .catch((error) => {
@@ -75,12 +83,12 @@ export const signInWithGoogle = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
     signInWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
+      .then(async (userCredential) => {
         const user = userCredential.user;
-        let uId = user.uid
-        const jwt = createToken(uId);
-        
-        res.send({jwt});
+        let uid = user.uid
+        const jwt = createToken(uid);
+        const {displayName, photo} = await getUser(uid);
+        res.send({jwt, uid, email, displayName, photo});
         // ...
       })
       .catch((error) => {
