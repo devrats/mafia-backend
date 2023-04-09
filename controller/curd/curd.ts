@@ -72,3 +72,22 @@ export const getUserGameHistory = async (req: Request, res: Response) => {
     }
   }
 };
+
+export const feedback = async (req: Request, res: Response) => {
+  try {
+    const { star, comments, uid, type } = req.body;
+    const docRef = await addDoc(collection(db, "feedback"), {
+      star: star,
+      comments: comments,
+      uid: uid,
+      type: type,
+    });
+    res.send("Success");
+  } catch (error: any) {
+    if (error.code == 11000) {
+      res.status(409).send(error);
+    } else {
+      res.status(400).send(error);
+    }
+  }
+};
