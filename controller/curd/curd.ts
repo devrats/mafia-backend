@@ -1,4 +1,11 @@
-import { getDocs, getFirestore } from "firebase/firestore";
+import {
+  arrayUnion,
+  doc,
+  getDocs,
+  getFirestore,
+  setDoc,
+  updateDoc,
+} from "firebase/firestore";
 import { app } from "../../connection/connection";
 import { collection, addDoc } from "firebase/firestore";
 import { Request, Response } from "express";
@@ -83,6 +90,66 @@ export const feedback = async (req: Request, res: Response) => {
       type: type,
     });
     res.send("Success");
+  } catch (error: any) {
+    if (error.code == 11000) {
+      res.status(409).send(error);
+    } else {
+      res.status(400).send(error);
+    }
+  }
+};
+
+export const createGame = async (req: Request, res: Response) => {
+  try {
+    const { uid } = req.query;
+    let gameID = Math.floor(100000 + Math.random() * 900000);
+    const docRef = await setDoc(doc(db, "game", JSON.stringify(gameID)), {
+      uid: uid,
+      gameID: gameID,
+      players: [],
+    });
+    res.send({ gameID });
+  } catch (error: any) {
+    if (error.code == 11000) {
+      res.status(409).send(error);
+    } else {
+      res.status(400).send(error);
+    }
+  }
+};
+
+export const joinGame = async (req: Request, res: Response) => {
+  try {
+    const { uid, gameCode } = req.body;
+    const ref = doc(db, "game", gameCode);
+    await updateDoc(ref, {
+      players: arrayUnion(uid),
+    });
+    res.send("Success");
+  } catch (error: any) {
+    if (error.code == 11000) {
+      res.status(409).send(error);
+    } else {
+      res.status(400).send(error);
+    }
+  }
+};
+
+export const getPlayerData = async (req: Request, res: Response) => {
+  try {
+    let displayName;
+    let photo;
+    let {uid} = req.body;
+    const querySnapshot = await getDocs(collection(db, "users"));
+    querySnapshot.forEach((doc) => {
+      if (doc.data().uid == uid) {
+        console.log(`${doc.id} => ${JSON.stringify(doc.data().displayName)}`);
+        displayName = doc.data().displayName;
+        photo = JSON.stringify(doc.data().photo);
+        console.log(displayName);
+      }
+    });
+    res.send({displayName, photo});
   } catch (error: any) {
     if (error.code == 11000) {
       res.status(409).send(error);

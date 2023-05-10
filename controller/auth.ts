@@ -37,6 +37,7 @@ export const logInWithGoogle = async (req: Request, res: Response) => {
     const {photo} = await getUser(uid);
     res.send({jwt, uid, email, displayName, photo});
   } catch (error: any) {
+    console.log(error);
     if (error.code == 11000) {
       res.status(409).send(error);
     } else {
