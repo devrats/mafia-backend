@@ -28,7 +28,6 @@ export const logInWithGoogle = async (req: Request, res: Response) => {
   try {
     const { uid, email, displayName} = req.body
     const jwt = createToken(uid);
-    console.log("lol");
     // createUser(req.body);
     let flag = await checkUser(uid);
     if(!flag){
@@ -49,8 +48,6 @@ export const logInWithGoogle = async (req: Request, res: Response) => {
 export const signUpWithGoogle = async (req: Request, res: Response) => {
   try {
     const { displayName, email, password } = req.body;
-    console.log(req.body);
-    console.log(displayName);
     createUserWithEmailAndPassword(auth, email, password)
       .then(async (userCredential) => {
         const user = userCredential.user;
