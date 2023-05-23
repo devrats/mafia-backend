@@ -17,5 +17,5 @@ authRoutes.post('/whoami', whoami);
 authRoutes.post('/ismafia',isMafia);
 authRoutes.post('/syncplayer', syncPlayer);
 authRoutes.get('/players', player);
-authRoutes.get('/updateusergamehistory', updateUserGameHistory);
-authRoutes.get('/updatetesults',updateResult)
+authRoutes.post('/updateusergamehistory', updateUserGameHistory);
+authRoutes.post('/updatetesults',updateResult)
