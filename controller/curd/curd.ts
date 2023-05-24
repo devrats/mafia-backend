@@ -24,15 +24,18 @@ export const createUser = async (data: any) => {
       email: email,
       photo: photo,
     });
-    const docRef1 = await setDoc(doc(db,'userGameHistory', JSON.stringify(uid)),{
-      uid: uid,
-      gameHistory : [],
-      gameMafia : 0,
-      gamePlayed : 0,
-      gameVillager : 0,
-      gameWin : 0,
-      gameLoose : 0
-    })
+    const docRef1 = await setDoc(
+      doc(db, "userGameHistory", JSON.stringify(uid)),
+      {
+        uid: uid,
+        gameHistory: [],
+        gameMafia: 0,
+        gamePlayed: 0,
+        gameVillager: 0,
+        gameWin: 0,
+        gameLoose: 0,
+      }
+    );
     // console.log("Document written with ID: ", docRef.id);
   } catch (e) {
     // console.error("Error adding document: ", e);
@@ -114,6 +117,8 @@ export const createGame = async (req: Request, res: Response) => {
       gameID: gameID,
       players: [],
       gameStart: 0,
+      round: [],
+      result: "",
     });
     res.send({ gameID });
   } catch (error: any) {
@@ -207,14 +212,14 @@ export const whoami = async (req: Request, res: Response) => {
     querySnapshot.forEach((doc) => {
       if (doc.data().gameID == gameCode) {
         // console.log(`${doc.id} => ${JSON.stringify(doc.data())}`);
-        doc.data().players.forEach((item:any) => {
-          if(item.uid == uid){
+        doc.data().players.forEach((item: any) => {
+          if (item.uid == uid) {
             role = item.role;
           }
         });
       }
     });
-    res.send({role});
+    res.send({ role });
   } catch (error: any) {
     if (error.code == 11000) {
       res.status(409).send(error);
@@ -232,14 +237,14 @@ export const isMafia = async (req: Request, res: Response) => {
     querySnapshot.forEach((doc) => {
       if (doc.data().gameID == gameCode) {
         // console.log(`${doc.id} => ${JSON.stringify(doc.data())}`);
-        doc.data().players.forEach((item:any) => {
-          if(item.uid == uid && item.role=='Mafia'){
+        doc.data().players.forEach((item: any) => {
+          if (item.uid == uid && item.role == "Mafia") {
             role = true;
           }
         });
       }
     });
-    res.send({role});
+    res.send({ role });
   } catch (error: any) {
     if (error.code == 11000) {
       res.status(409).send(error);
@@ -277,7 +282,7 @@ export const player = async (req: Request, res: Response) => {
         players = doc.data().players;
       }
     });
-    res.send({players});
+    res.send({ players });
   } catch (error: any) {
     if (error.code == 11000) {
       res.status(409).send(error);
@@ -294,30 +299,35 @@ export const updateUserGameHistory = async (req: Request, res: Response) => {
     let rolePlayed = 0;
     const querySnapshot = await getDocs(collection(db, "userGameHistory"));
     querySnapshot.forEach((doc) => {
-      if(doc.data().uid == uid){
+      if (doc.data().uid == uid) {
         played = doc.data().gamePlayed;
-        rolePlayed = role == 'Mafia' ? doc.data().gameMafia : doc.data().gameVillager
+        rolePlayed =
+          role == "Mafia" ? doc.data().gameMafia : doc.data().gameVillager;
       }
     });
     let data = {
-      gameCode : gameCode,
+      gameCode: gameCode,
       role: role,
-      result:"No result",
-    }
+      result: "No result",
+    };
     const ref = doc(db, "userGameHistory", JSON.stringify(uid));
-    if(role == 'Mafia'){
+    if (role == "Mafia") {
       await updateDoc(ref, {
         gameHistory: arrayUnion(data),
-        gamePlayed : played + 1,
-        gameMafia: rolePlayed + 1
+        gamePlayed: played + 1,
+        gameMafia: rolePlayed + 1,
       });
-    } else{
+    } else {
       await updateDoc(ref, {
         gameHistory: arrayUnion(data),
-        gamePlayed : played + 1,
-        gameVillager : rolePlayed + 1
+        gamePlayed: played + 1,
+        gameVillager: rolePlayed + 1,
       });
     }
+    const ref1 = doc(db, "game", gameCode);
+    await updateDoc(ref1, {
+      result: "No result",
+    });
     res.send("Success");
   } catch (error: any) {
     if (error.code == 11000) {
@@ -332,50 +342,99 @@ export const updateResult = async (req: Request, res: Response) => {
   try {
     let { gameCode, uid, role, result } = req.body;
     let status = 0;
-    let data:any = [];
-    let gameStatus :boolean;
-    if((role == 'Mafia' && result=='Mafia Wins') || (role!='Mafia' && result == 'Villagers Wins')){
-      gameStatus = true
-    } else{
-      gameStatus = false
+    let data: any = [];
+    let gameStatus: boolean;
+    let results;
+    if (
+      (role == "Mafia" && result == "Mafia Wins") ||
+      (role != "Mafia" && result == "Villagers Wins")
+    ) {
+      gameStatus = true;
+    } else {
+      gameStatus = false;
     }
     const querySnapshot = await getDocs(collection(db, "userGameHistory"));
     querySnapshot.forEach((doc) => {
-      if(doc.data().uid == uid){
+      if (doc.data().uid == uid) {
         console.log(doc.data);
         data = doc.data().gameHistory;
-        status = gameStatus ? doc.data().gameWin : doc.data().gameLoose
+        status = gameStatus ? doc.data().gameWin : doc.data().gameLoose;
       }
     });
-    data.map((x:any)=>{
-      if(x.gameCode == gameCode){
-        if(gameStatus){
-          x.result = "Win"
-        } else{
-          x.result = 'Loose'
+    data.map((x: any) => {
+      if (x.gameCode == gameCode) {
+        results = x.result;
+        if (gameStatus) {
+          x.result = "Win";
+        } else {
+          x.result = "Loose";
         }
       }
-    })
+    });
     console.log(data);
     console.log(uid, gameCode, status, role, result);
-    
-    const ref = doc(db, "userGameHistory", JSON.stringify(uid));
-    if(role){
-      if(gameStatus){
-        console.log('mmmmmmmm');
-        await updateDoc(ref, {
-          gameHistory: data,
-          gameWin : status + 1
-        });
-      } else{
-        console.log('nnnnnnnnnnnnnnnnnnnnn');
-        await updateDoc(ref, {
-          gameHistory: data,
-          gameLoose : status + 1
-        });
+
+    if (results == "No result") {
+      const ref = doc(db, "userGameHistory", JSON.stringify(uid));
+      if (role) {
+        if (gameStatus) {
+          console.log("mmmmmmmm");
+          await updateDoc(ref, {
+            gameHistory: data,
+            gameWin: status + 1,
+          });
+        } else {
+          console.log("nnnnnnnnnnnnnnnnnnnnn");
+          await updateDoc(ref, {
+            gameHistory: data,
+            gameLoose: status + 1,
+          });
+        }
       }
+      const ref1 = doc(db, "game", gameCode);
+      await updateDoc(ref1, {
+        result: result,
+      });
     }
     res.send("Success");
+  } catch (error: any) {
+    if (error.code == 11000) {
+      res.status(409).send(error);
+    } else {
+      res.status(400).send(error);
+    }
+  }
+};
+
+export const updateRound = async (req: Request, res: Response) => {
+  try {
+    const { uid, gameCode, round } = req.body;
+    const ref = doc(db, "game", gameCode);
+    await updateDoc(ref, {
+      round: arrayUnion(round),
+    });
+    res.send("Success");
+  } catch (error: any) {
+    if (error.code == 11000) {
+      res.status(409).send(error);
+    } else {
+      res.status(400).send(error);
+    }
+  }
+};
+
+export const getGame = async (req: Request, res: Response) => {
+  try {
+    const { uid, gameCode } = req.body;
+    let game;
+    const querySnapshot = await getDocs(collection(db, "game"));
+    querySnapshot.forEach((doc) => {
+      if (doc.data().gameID == gameCode) {
+        // console.log(`${doc.id} => ${JSON.stringify(doc.data())}`);
+        game = doc.data();
+      }
+    });
+    res.send({ game });
   } catch (error: any) {
     if (error.code == 11000) {
       res.status(409).send(error);

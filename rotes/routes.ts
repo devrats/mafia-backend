@@ -1,6 +1,6 @@
 import express from 'express'
 import { logInWithGoogle, signInWithGoogle, signUpWithGoogle } from '../controller/auth';
-import { createGame, feedback, gameStarted, getPlayerData, getUserGameHistory, isMafia, joinGame, player, startGame, syncPlayer, updateResult, updateUserGameHistory, whoami } from '../controller/curd/curd';
+import { createGame, feedback, gameStarted, getGame, getPlayerData, getUserGameHistory, isMafia, joinGame, player, startGame, syncPlayer, updateResult, updateRound, updateUserGameHistory, whoami } from '../controller/curd/curd';
 export const authRoutes = express.Router();
 
 authRoutes.post('/login',logInWithGoogle);
@@ -19,3 +19,5 @@ authRoutes.post('/syncplayer', syncPlayer);
 authRoutes.get('/players', player);
 authRoutes.post('/updateusergamehistory', updateUserGameHistory);
 authRoutes.post('/updatetesults',updateResult)
+authRoutes.post('/updateround',updateRound);
+authRoutes.post('/getgame',getGame);
