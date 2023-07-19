@@ -1,4 +1,4 @@
-import express from 'express'
+const express =  require('express')
 import { logInWithGoogle, signInWithGoogle, signUpWithGoogle } from '../controller/auth';
 import { createGame, feedback, gameStarted, getGame, getPlayerData, getUserGameHistory, isMafia, joinGame, player, startGame, syncPlayer, updateResult, updateRound, updateUserGameHistory, whoami } from '../controller/curd/curd';
 export const authRoutes = express.Router();
