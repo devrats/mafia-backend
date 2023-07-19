@@ -1,15 +1,18 @@
-import express from "express";
-import { authRoutes } from "./rotes/routes";
-import cors from 'cors'
-import cookieParser from'cookie-parser';
-import dotenv from 'dotenv'
+const express = require("express")
+const { authRoutes } = require("./rotes/routes");
+const cors =  require("cors")
+const cookieParser =  require("cookie-parser")
+const dotenv =  require("dotenv")
 const server = require('http').createServer();
-const io = require('socket.io')(server);
+const io = require('socket.io')(server, {
+  cors: {
+    origin: "*",
+    methods: ['GET','POST','DELETE','UPDATE','PUT','PATCH']
+  }
+});
 io.on('connection', (socket:any) => {
-    console.log('A user connected');
   
     socket.on('chat-message', (message:any) => {
-      console.log('Received message:', message);
       io.emit('chat-message', message);
       // Handle the received message and broadcast it to other clients
       // using socket.emit(), io.emit(), or other appropriate methods.
