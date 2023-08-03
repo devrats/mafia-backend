@@ -111,7 +111,19 @@ export const feedback = async (req: Request, res: Response) => {
 export const createGame = async (req: Request, res: Response) => {
   try {
     const { uid } = req.query;
-    let gameID = Math.floor(100000 + Math.random() * 900000);
+    let allowPlayer = true;
+    let gameID:any
+    while (allowPlayer) {
+      allowPlayer = false;
+      gameID = Math.floor(100000 + Math.random() * 900000);
+      const querySnapshot = await getDocs(collection(db, "game"));
+      querySnapshot.forEach((doc) => {
+        console.log("aaaaaaaaa", doc.data());
+        if (doc.data().gameID == gameID) {
+          allowPlayer = true;
+        }
+      });
+    }
     const docRef = await setDoc(doc(db, "game", JSON.stringify(gameID)), {
       uid: uid,
       gameID: gameID,
@@ -133,6 +145,26 @@ export const createGame = async (req: Request, res: Response) => {
 export const joinGame = async (req: Request, res: Response) => {
   try {
     const { uid, gameCode } = req.body;
+    let players: any = [];
+    let allowPlayer = true;
+    const querySnapshot = await getDocs(collection(db, "game"));
+    querySnapshot.forEach((doc) => {
+      console.log("aaaaaaaaa", doc.data());
+      if (doc.data().gameID == gameCode) {
+        players = doc.data().players;
+      }
+    });
+    players?.forEach((x: any) => {
+      if (x == uid) {
+        console.log("bbbbbbb", x, uid);
+
+        allowPlayer = false;
+      }
+    });
+    if (!allowPlayer) {
+      res.status(201).send("already exist");
+      return;
+    }
     const ref = doc(db, "game", gameCode);
     await updateDoc(ref, {
       players: arrayUnion(uid),
